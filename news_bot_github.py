@@ -8,15 +8,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
-# --- [ตั้งค่า] ---
+# --- [รับค่าจาก GitHub Secrets เพื่อความปลอดภัย] ---
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
 SEARCH_QUERY = "ข่าวการศึกษา ข่าวเทคโนโลยี"
-# ----------------
+# ------------------------------------------------
 
 def get_latest_news():
-    print("กำลังรวบรวมข่าวล่าสุด...")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] กำลังรวบรวมข่าวล่าสุด...")
     url = f"https://news.google.com/rss/search?q={SEARCH_QUERY}&hl=th&gl=TH&ceid=TH:th"
     
     try:
@@ -26,7 +26,7 @@ def get_latest_news():
         news_items = []
         html_items = ""
         
-        for i, item in enumerate(root.findall('.//item')[:10]):
+        for i, item in enumerate(root.findall('.//item')[:15]):
             title = item.find('title').text
             clean_title = title.rsplit(' - ', 1)[0] if ' - ' in title else title
             pub_date = item.find('pubDate').text
@@ -81,24 +81,30 @@ def get_latest_news():
 
 def send_email(filename):
     if not filename or not EMAIL_SENDER: return
+    
+    print(f"กำลังส่งสรุปข่าวไปยัง {EMAIL_RECEIVER}...")
     msg = MIMEMultipart()
     msg['From'] = EMAIL_SENDER
     msg['To'] = EMAIL_RECEIVER
-    msg['Subject'] = f"📊 สรุปข่าวโรงเรียน: {datetime.now().strftime('%H:%M')}"
-    msg.attach(MIMEText("สรุปข่าวล่าสุดตามไฟล์แนบครับ (ไม่มีลิงก์รบกวน)", 'plain'))
+    msg['Subject'] = f"📊 [Auto] สรุปข่าวเด่น: {datetime.now().strftime('%H:%M')}"
+
+    body = f"สรุปข่าวล่าสุดส่งตรงจาก GitHub Actions ครับ (ไม่มีลิงก์รบกวน)"
+    msg.attach(MIMEText(body, 'plain'))
+
     with open(filename, "rb") as attachment:
         part = MIMEBase('application', 'octet-stream')
         part.set_payload(attachment.read())
         encoders.encode_base64(part)
         part.add_header('Content-Disposition', f"attachment; filename= {filename}")
         msg.attach(part)
+
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
         server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
         server.quit()
-        print("✅ ส่งอีเมลสำเร็จ!")
+        print("✅ ส่งอีเมลสรุปข่าวเรียบร้อยแล้ว!")
     except Exception as e:
         print(f"❌ ส่งอีเมลไม่สำเร็จ: {e}")
 
