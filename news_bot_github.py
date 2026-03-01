@@ -29,20 +29,12 @@ def get_latest_news():
             clean_title = title.rsplit(' - ', 1)[0] if ' - ' in title else title
             news_items.append(f"{i+1}. {clean_title}")
             
-        summary = f"📢 สรุปข่าวสำคัญ (GitHub Actions): {SEARCH_QUERY}
-"
-        summary += f"ประจำวันที่: {datetime.now().strftime('%d/%m/%Y')} เวลา {datetime.now().strftime('%H:%M')} น.
-"
-        summary += "="*50 + "
-
-"
-        summary += "
-".join(news_items)
-        summary += "
-
-" + "="*50
-        summary += "
-(ส่งโดย GitHub Actions อัตโนมัติ 24 ชม.)"
+        summary = f"📢 สรุปข่าวสำคัญ (GitHub Actions): {SEARCH_QUERY}\n"
+        summary += f"ประจำวันที่: {datetime.now().strftime('%d/%m/%Y')} เวลา {datetime.now().strftime('%H:%M')} น.\n"
+        summary += "="*50 + "\n\n"
+        summary += "\n".join(news_items)
+        summary += "\n\n" + "="*50
+        summary += "\n(ส่งโดย GitHub Actions อัตโนมัติ 24 ชม.)"
         
         filename = "news_summary.txt"
         with open(filename, "w", encoding="utf-8") as f:
