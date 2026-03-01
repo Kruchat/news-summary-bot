@@ -1,0 +1,31 @@
+name: News Summary Automation
+
+on:
+  schedule:
+    # รันทุกๆ 15 นาที
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # ปุ่มกดรันเองแบบ Manual สำหรับทดสอบ
+
+jobs:
+  run-news-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run News Bot
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: python news_bot_github.py
