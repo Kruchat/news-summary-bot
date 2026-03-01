@@ -1,23 +1,38 @@
 name: News Summary Automation
+
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+
 jobs:
   run-news-bot:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+
       - name: Install dependencies
         run: pip install requests
+
       - name: Run News Bot
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: python news_bot_github.py
+
+      - name: Commit and Push index.html
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add index.html
+          git commit -m "Auto-update news page [skip ci]" || exit 0
+          git push
